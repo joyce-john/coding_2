@@ -8,9 +8,6 @@ library(data.table)
 
 get_results <- function(page_count, search_term){
 
-# make an index for dealing with duplicates
-keep_list <- seq(from = 1, to = 20, by = 2)
-
 # this function gets 1 page
 get_petapixel_page <- function(my_url){
   
@@ -34,6 +31,9 @@ get_petapixel_page <- function(my_url){
     html_nodes('.post-medium a')%>%
     html_attr('href')
   
+  # make an index for dealing with duplicates
+  keep_list <- seq(from = 1, to = 20, by = 2)
+  
   # reassign article link to itself with an index that selects alternating items
   article_link <- article_link[keep_list]
   
@@ -51,16 +51,18 @@ get_petapixel_page <- function(my_url){
   return(page_df)
 }
 
-# constructs urls with the user-supplied page_count and search_term
+# constructs a list of URLs to scrape with the user-supplied page_count and search_term
 url_list <- paste0("https://petapixel.com/page/", 1:page_count, "/?s=", search_term)
 
-# lapply passes every URL in the url_list as an argument to the scraping function and returns a list
-all_pages_df <- lapply(url_list, get_petapixel_page)
+# lapply sends each URL to the scraping function, returns a list, and rbindlist binds it to a dataframe
+all_pages_df <- rbindlist(lapply(url_list, get_petapixel_page))
 
-# bind the lists into a dataframe
-all_pages_df <- rbindlist(all_pages_df)
+# save the scraped content to CSV and RDS formats
+write.csv(all_pages_df, "petapixel_articles.csv")
+saveRDS(all_pages_df, "petapixel_articles.rds")
 
-return(all_pages_df)
+# print a message to alert the user that function is finished
+print("Output saved to CSV and RDS formats.")
 }
 
-test <- get_results(3, "pentax")
+get_results(2, "pentax")
