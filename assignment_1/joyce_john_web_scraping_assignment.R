@@ -7,10 +7,10 @@ library(data.table)
 
 # this function scrapes multiple pages from Petapixel.com
 # takes a number and a search term in quotes as arguments
-get_results <- function(page_count, search_term) {
+petapixel_scrape <- function(search_term, page_count) {
   
   # this function gets 1 page
-  get_petapixel_page <- function(one_url) {
+  get_single_page <- function(one_url) {
    
     # read the supplied URL into an object
     t <- read_html(one_url)
@@ -56,7 +56,7 @@ get_results <- function(page_count, search_term) {
            search_term)
   
   # lapply sends each URL to the scraping function, returns a list, and rbindlist binds it to a dataframe
-  all_pages_df <- rbindlist(lapply(url_list, get_petapixel_page))
+  all_pages_df <- rbindlist(lapply(url_list, get_single_page))
   
   # save the scraped content to CSV and RDS formats
   write.csv(all_pages_df, "petapixel_articles.csv")
@@ -67,5 +67,5 @@ get_results <- function(page_count, search_term) {
 }
 
 # call the function with arguments like this:
-# get_results(number of pages to scrape, "topic")
-get_results(2, "pentax")
+# petapixel_scrape("topic", number of pages to scrape)
+petapixel_scrape("pentax", 2)
