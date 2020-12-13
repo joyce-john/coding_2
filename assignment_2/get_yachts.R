@@ -44,10 +44,17 @@ yacht_urls <- unname(
 }))
 
 
+# grab the prices and put them in a table next to the URLs
+# use this to join prices to the main DF later
+# scraping prices is awkward because of inconsistencies with the way prices are displayed
+# and URLs are the perfect joining variable, because they are unique (unlike yacht names)
+yacht_prices <- df$data$searchPublishedContent$results$formattedPrice
+yacht_info <- data.frame(link = yacht_urls, PRICE = yacht_prices)
+
 ###########################################
 ###########################################
-###    USE THE YACHT URLS TO SCRAPE     ###
-###  THE TABLES ON EVERY YACHT'S PAGE   ###
+###     SCRAPE EVERY YACHT'S PAGE       ###
+###   CREATE DATAFRAME OF ALL YACHTS    ###
 ###########################################
 ###########################################
 
@@ -58,19 +65,23 @@ get_page_stats <- function(url){
   # this shows the user that the script is still running
   print(url)
   
+  # read the webpage
   t <- read_html(url)
   
   # this will hold the scraped information
   info_table <- list()
   
+  # grab stat names from the top table
   stat_titles <- t %>% 
     html_nodes('.stats__title') %>% 
     html_text()
     
+  # grab stat values from the top table
   stat_values <- t %>% 
     html_nodes('.stats__value') %>% 
     html_text()
  
+  # put names and values from the top table in the list
   # only perform this action if the number of keys and values match up, and they are not 0
   if (length(stat_titles) ==  length(stat_values) & length(stat_titles) > 0){ 
     for (i in 1:length(stat_titles)) {
@@ -78,14 +89,17 @@ get_page_stats <- function(url){
     }
   }
   
+  # grab specification names from the bottom table
   spec_titles <- t %>% 
     html_nodes('.spec-block__title') %>% 
     html_text()
   
+  # grab specification values from the bottom table
   spec_values <- t %>% 
     html_nodes('.spec-block__data') %>% 
     html_text()
   
+  # put names and values from the bottom table in the list
   # only perform this action if the number of keys and values match up, and they are not 0
   if (length(spec_titles) == length(spec_values) & length(spec_titles) > 0){
     for (i in 1:length(spec_titles)){
@@ -93,14 +107,75 @@ get_page_stats <- function(url){
     }
   }
   
+  # add the url to the list
+  info_table$link <- url
+  
   return(info_table)
 }
 
 # call the function on every yacht URL
-# WARNING: this could take 15 minutes
+# WARNING: this can be slow at times
 df <- rbindlist(lapply(yacht_urls, get_page_stats), fill = T)
 
 
 
+###########################################
+###########################################
+###                CLEAN                ###
+###          YACHT INFORMATION          ###
+###########################################
+###########################################
 
+# drop useless column
+df <- df %>% 
+  select(-V2)
 
+# rename V1 to something understandable
+df <- df %>% 
+  rename(range_valid_at_speed = V1)
+
+# convert prices to EUR in the dataframe made earlier with information from the JSON
+yacht_info2 <- yacht_info %>% mutate(eur = price_to_EUR(PRICE))
+
+# join the price data from the JSON
+df2 <- left_join(df, yacht_info, by = "link")
+
+# define a function for converting prices to EUR
+price_to_EUR <- function(price_with_symbol){
+  
+  if(is.na(price_with_symbol)){
+    price_with_symbol <- NULL
+  }
+  
+  else if(str_detect(price_with_symbol, "€") == TRUE){
+    price_with_symbol <- price_with_symbol %>% 
+      str_replace("€", "") %>% 
+      str_replace_all(",", "") %>% 
+      as.numeric()
+  }
+  
+  else if(str_detect(price_with_symbol, "\\$") == TRUE){
+    price_with_symbol <- price_with_symbol %>% 
+      str_replace("\\$", "") %>% 
+      str_replace_all(",", "") %>% 
+      as.numeric()
+    price_with_symbol <- price_with_symbol * 0.82
+  }
+  
+  else if(str_detect(price_with_symbol, "£") == TRUE){
+    price_with_symbol <- price_with_symbol %>% 
+      str_replace("£", "") %>% 
+      str_replace_all(",", "") %>% 
+      as.numeric()
+    price_with_symbol <- price_with_symbol *1.10
+  }
+  
+  else{
+    price_with_symbol <- NULL
+  }
+  
+  
+  return(price_with_symbol)
+}
+
+df2 <- df2 %>% mutate(EUR_price = price_to_EUR(PRICE))
