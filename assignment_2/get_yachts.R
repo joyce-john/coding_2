@@ -126,11 +126,12 @@ df <- rbindlist(lapply(yacht_urls, get_page_stats), fill = T)
 ###########################################
 ###########################################
 
-# drop useless column
+# drop useless column ("V2") 
+# and a column which has information that is repeated in another column ("DISPLACEMENT")
 df <- df %>% 
-  select(-V2)
+  select(-V2, DISPLACEMENT)
 
-# rename V1 to something understandable
+# rename the column "V1" to something understandable
 df <- df %>% 
   rename(range_valid_at_speed = V1)
 
@@ -184,7 +185,21 @@ yacht_info <- yacht_info %>%
 # join the price data from the JSON
 df <- left_join(df, yacht_info, by = "link")
 
-
+# rename columns to include measurement units
+df %>% rename('TOP SPEED kn' = 'TOP SPEED',
+              'RANGE nm' = 'RANGE', 
+              'CRUISING SPEED kn' = 'CRUISING SPEED', 
+              'BEAM m' = 'BEAM', 
+              'Length Overall in meters:' = 'Length Overall:', 
+              'Beam in meters:' = 'Beam:', 
+              'Max Draught in meters:' = 'Max Draught:', 
+              'Max Speed in kn:' = 'Max Speed:',
+              'Cruising Speed in kn:' = 'Cruising Speed:',
+              'Range Valid at Speed in kn:' = 'range_valid_at_speed',
+              'Total Power in hp:' = 'Total power:',
+              'Fuel Capacity in liters:' = 'Fuel Capacity:',
+              'Water Capacity in liters:' = 'Water Capacity:',
+              'Length at Waterline in meters:' = 'Length at Waterline:')
 
 #OPTIONAL: save clean DF to RDS object
 #saveRDS(df, "yacht_DF.RDS")
