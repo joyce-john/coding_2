@@ -134,17 +134,14 @@ df <- df %>%
 df <- df %>% 
   rename(range_valid_at_speed = V1)
 
-# convert prices to EUR in the dataframe made earlier with information from the JSON
-yacht_info2 <- yacht_info %>% mutate(eur = price_to_EUR(PRICE))
 
-# join the price data from the JSON
-df2 <- left_join(df, yacht_info, by = "link")
 
 # define a function for converting prices to EUR
+# this function returns a numeric 0 for invalid input values
 price_to_EUR <- function(price_with_symbol){
   
   if(is.na(price_with_symbol)){
-    price_with_symbol <- NULL
+    price_with_symbol <- 0
   }
   
   else if(str_detect(price_with_symbol, "€") == TRUE){
@@ -158,24 +155,36 @@ price_to_EUR <- function(price_with_symbol){
     price_with_symbol <- price_with_symbol %>% 
       str_replace("\\$", "") %>% 
       str_replace_all(",", "") %>% 
-      as.numeric()
-    price_with_symbol <- price_with_symbol * 0.82
+      as.numeric() %>%  `*` (0.82)
   }
   
   else if(str_detect(price_with_symbol, "£") == TRUE){
     price_with_symbol <- price_with_symbol %>% 
       str_replace("£", "") %>% 
       str_replace_all(",", "") %>% 
-      as.numeric()
-    price_with_symbol <- price_with_symbol *1.10
+      as.numeric() %>% `*` (1.10)
   }
   
   else{
-    price_with_symbol <- NULL
+    price_with_symbol <- 0
   }
   
   
   return(price_with_symbol)
 }
 
-df2 <- df2 %>% mutate(EUR_price = price_to_EUR(PRICE))
+# convert yacht prices from original currency to EUR and store in a vector
+converted_prices <- unname(sapply(yacht_prices, price_to_EUR))
+
+# add converted prices to the basic dataframe made from JSON at the beginning
+# values of 0 converted to NA
+yacht_info <- yacht_info %>% 
+  mutate(PRICE_EUR = na_if(converted_prices, 0))
+
+# join the price data from the JSON
+df <- left_join(df, yacht_info, by = "link")
+
+
+
+#OPTIONAL: save clean DF to RDS object
+#saveRDS(df, "yacht_DF.RDS")
