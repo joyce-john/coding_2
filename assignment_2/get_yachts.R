@@ -140,14 +140,20 @@ df <- df %>%
 
 
 
+# set currency conversion rates
+USD_to_EUR <- 0.82
+GBP_to_EUR <- 1.10
+
 # define a function for converting prices to EUR
 # this function returns a numeric 0 for invalid input values
 price_to_EUR <- function(price_with_symbol){
   
+  # set NAs to 0
   if(is.na(price_with_symbol)){
     price_with_symbol <- 0
   }
   
+  # EUR: strip symbols, change data type to numeric
   else if(str_detect(price_with_symbol, "€") == TRUE){
     price_with_symbol <- price_with_symbol %>% 
       str_replace("€", "") %>% 
@@ -155,20 +161,24 @@ price_to_EUR <- function(price_with_symbol){
       as.numeric()
   }
   
+  # USD: strip symbols, change data type to numeric, multiply by USD_to_EUR
   else if(str_detect(price_with_symbol, "\\$") == TRUE){
     price_with_symbol <- price_with_symbol %>% 
       str_replace("\\$", "") %>% 
       str_replace_all(",", "") %>% 
-      as.numeric() %>%  `*` (0.82)
+      as.numeric() %>%  `*` (USD_to_EUR)
   }
   
+  # GBP: strip symbols, change data type to numeric, multiply by GBP_to_EUR
   else if(str_detect(price_with_symbol, "£") == TRUE){
     price_with_symbol <- price_with_symbol %>% 
       str_replace("£", "") %>% 
       str_replace_all(",", "") %>% 
-      as.numeric() %>% `*` (1.10)
+      as.numeric() %>% `*` (GBP_to_EUR)
   }
   
+  # other: set to 0
+  # for example, entries that say "POA"
   else{
     price_with_symbol <- 0
   }
@@ -268,12 +278,10 @@ df %>%
   labs(x = "Year Built", y = "Number of Yachts Listed", title = "Number of Yachts for Sale, Manufactured 2000 - 2020") +
   theme_gdocs()
 
-# Take a look at the range of yachts speeds for some of the big engine makers
+# Take a look at the yachts speeds for some of the big engine makers
 df %>% 
   filter(`Engine Make:` %in% c("Caterpillar ", "MTU ", "Cummins ") ) %>% 
   ggplot(aes(x = `Engine Make:`, y = `Max Speed in kn:`, color = `Engine Make:`) ) +
   geom_boxplot() +
   labs(x = "", y = "Max Speed in Knots", title = "Max Speed by Engine Manufacturer") +
   theme_gdocs()
-
-
