@@ -294,7 +294,7 @@ With data about all the yachts for sale on Boat International, we can do some ex
 
 #### Is there a relationship between the length of a yacht and it's price?  
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=10, fig.height=10}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 8}
 
 # Examine the relationship between yacht length and price
 df %>% 
@@ -309,7 +309,7 @@ df %>%
 
 #### How old are the yachts for sale right now?  
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=10, fig.height=10}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 8}
 
 # Look at the model-year distribution of yachts for sale right now
 df %>% 
@@ -323,7 +323,7 @@ df %>%
 
 #### Are some engine manufacturers making faster yachts than others?  
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=10, fig.height=10}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 8}
 
 # Take a look at the yachts speeds for some of the big engine makers
 df %>% 
