@@ -186,7 +186,7 @@ yacht_info <- yacht_info %>%
 df <- left_join(df, yacht_info, by = "link")
 
 # rename columns to include measurement units
-df %>% rename('TOP SPEED kn' = 'TOP SPEED',
+df <- df %>% rename('TOP SPEED kn' = 'TOP SPEED',
               'RANGE nm' = 'RANGE', 
               'CRUISING SPEED kn' = 'CRUISING SPEED', 
               'BEAM m' = 'BEAM', 
@@ -195,11 +195,47 @@ df %>% rename('TOP SPEED kn' = 'TOP SPEED',
               'Max Draught in meters:' = 'Max Draught:', 
               'Max Speed in kn:' = 'Max Speed:',
               'Cruising Speed in kn:' = 'Cruising Speed:',
+              'Range in nm:' = 'Range:',
               'Range Valid at Speed in kn:' = 'range_valid_at_speed',
               'Total Power in hp:' = 'Total power:',
               'Fuel Capacity in liters:' = 'Fuel Capacity:',
               'Water Capacity in liters:' = 'Water Capacity:',
               'Length at Waterline in meters:' = 'Length at Waterline:')
+
+df <- df %>% 
+  mutate(`TOP SPEED kn` = as.numeric(str_extract(`TOP SPEED kn`, "\\d*\\.*\\d*")),
+         `RANGE nm` = as.numeric(str_extract(`RANGE nm`, "\\d*\\.*\\d*")),
+         `GUESTS` = as.numeric(`GUESTS`),
+         `CREW` = as.numeric(`CREW`),
+         `CRUISING SPEED kn` = as.numeric(str_extract(`CRUISING SPEED kn`, pattern = "\\d*\\.*\\d*")),
+         `BEAM m` = as.numeric(str_extract(`BEAM m`, pattern = "\\d*\\.*\\d*")),
+         `Length Overall in meters:` = as.numeric(str_extract(`BEAM m`, pattern = "\\d*\\.*\\d*")),
+         `GUEST CABIN` = as.numeric(`GUEST CABIN`),
+         `Length Overall in meters:` = as.numeric(str_extract(`Length Overall in meters:`, pattern = "\\d*\\.*\\d*")),
+         `Beam in meters:` = as.numeric(str_extract(`Beam in meters:`, pattern = "\\d*\\.*\\d*")),
+         `Max Draught in meters:` = as.numeric(str_extract(`Max Draught in meters:`, pattern = "\\d*\\.*\\d*")),
+         `Gross Tonnage:` = as.numeric(str_extract(`Gross Tonnage:`, pattern = "\\d*\\.*\\d*")),
+         `Year of Build:` = as.factor(`Year of Build:`),
+         `Number of Decks:` = as.numeric(`Number of Decks:`),
+         `Max Speed in kn:` = as.numeric(str_extract(`Max Speed in kn:`, pattern = "\\d*\\.*\\d*")),
+         `Cruising Speed in kn:` = as.numeric(str_extract(`Cruising Speed in kn:`, pattern = "\\d*\\.*\\d*")),
+         `Range in nm:` = as.numeric(str_extract(`Range in nm:`, pattern = "\\d*\\.*\\d*")),
+         `Range Valid at Speed in kn:`= as.numeric(str_extract(`Range Valid at Speed in kn:`, pattern = "\\d*\\.*\\d*")),
+         `Total Power in hp:` = as.numeric(str_extract(`Total Power in hp:`, pattern = "\\d*\\.*\\d*")),
+         `Guests:` = as.numeric(`Guests:`),
+         `Passenger Rooms:` = as.numeric(`Passenger Rooms:`),
+         `Master Rooms:` = as.numeric(`Master Rooms:`),
+         `Double Rooms: ` = as.numeric(`Double Rooms: `),
+         `Twin Rooms:` = as.numeric(`Twin Rooms:`),
+         `For sale to U.S. Residents while in U.S. Waters:` = as.factor(`For sale to U.S. Residents while in U.S. Waters:`),
+         `Displacement Tonnage:` = as.numeric(`Displacement Tonnage:`),
+         `Fuel Capacity in liters:` = as.numeric(str_extract(`Fuel Capacity in liters:`, pattern = "\\d*\\.*\\d*")),
+         `Water Capacity in liters:` = as.numeric(str_extract(`Water Capacity in liters:`, pattern = "\\d*\\.*\\d*")),
+         `Length at Waterline in meters:` = as.numeric(str_extract(`Length at Waterline in meters:`, pattern = "\\d*\\.*\\d*")),
+         `VIP Rooms:` = as.numeric(`VIP Rooms:`)
+         )
+  
+
 
 #OPTIONAL: save clean DF to RDS object
 #saveRDS(df, "yacht_DF.RDS")
