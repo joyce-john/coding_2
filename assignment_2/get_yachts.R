@@ -4,6 +4,7 @@ library(data.table)
 library(tidyverse)
 library(jsonlite)
 library(httr)
+library(ggthemes)
 
 ###########################################
 ###########################################
@@ -251,26 +252,28 @@ df <- df %>%
 
 # Examine the relationship between yacht length and price
 df %>% 
-  ggplot(aes(x = `Length at Waterline in meters:`, y = (PRICE_EUR / 1000000))) +
+  ggplot(aes(x = `Length Overall in meters:` , y = (PRICE_EUR / 1000000))) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "loess") +
-  labs(x = "Yacht Length at Waterline in Meters", y = "Price, in Millions (EUR)", title = "Relationship Between Price (EUR) and Yacht Length") +
-  theme(plot.title = element_text(hjust = 0.5))
+  labs(x = "Yacht Length in Meters", y = "Price, in Millions (EUR)", title = "Relationship Between Price (EUR) and Yacht Length") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme_gdocs()
+
 
 # Look at the model-year distribution of yachts for sale right now
 df %>% 
-  filter(`Year of Build:` %in% 1980:2020) %>% 
+  filter(`Year of Build:` %in% 2000:2020) %>% 
   ggplot(aes(x = `Year of Build:`)) +
   geom_histogram(stat = "count") +
-  labs(x = "Year Built", y = "Number of Yachts Listed", title = "Yachts for Sale, Manufactured 1980 - 2020") +
-  theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5))
+  labs(x = "Year Built", y = "Number of Yachts Listed", title = "Number of Yachts for Sale, Manufactured 2000 - 2020") +
+  theme_gdocs()
 
 # Take a look at the range of yachts speeds for some of the big engine makers
 df %>% 
   filter(`Engine Make:` %in% c("Caterpillar ", "MTU ", "Cummins ") ) %>% 
-  ggplot(aes(x = `Engine Make:`, y = `Max Speed in kn:`)) +
+  ggplot(aes(x = `Engine Make:`, y = `Max Speed in kn:`, color = `Engine Make:`) ) +
   geom_boxplot() +
-  labs(x = "Engine Make", y = "Max Speed in Knots", title = "Max Speed by Engine Manufacturer") +
-  theme(plot.title = element_text(hjust = 0.5))
+  labs(x = "", y = "Max Speed in Knots", title = "Max Speed by Engine Manufacturer") +
+  theme_gdocs()
 
 
