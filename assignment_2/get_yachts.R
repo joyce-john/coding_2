@@ -126,6 +126,8 @@ df <- rbindlist(lapply(yacht_urls, get_page_stats), fill = T)
 ###########################################
 ###########################################
 
+
+
 # drop useless column ("V2") 
 # and a column which has information that is repeated in another column ("DISPLACEMENT")
 df <- df %>% 
@@ -182,7 +184,7 @@ converted_prices <- unname(sapply(yacht_prices, price_to_EUR))
 yacht_info <- yacht_info %>% 
   mutate(PRICE_EUR = na_if(converted_prices, 0))
 
-# join the price data from the JSON
+# join the price data from the simple dataframe (JSON source) to the main DF
 df <- left_join(df, yacht_info, by = "link")
 
 # rename columns to include measurement units
@@ -202,6 +204,7 @@ df <- df %>% rename('TOP SPEED kn' = 'TOP SPEED',
               'Water Capacity in liters:' = 'Water Capacity:',
               'Length at Waterline in meters:' = 'Length at Waterline:')
 
+# change character datatypes to numeric, sometimes with string manipulation
 df <- df %>% 
   mutate(`TOP SPEED kn` = as.numeric(str_extract(`TOP SPEED kn`, "\\d*\\.*\\d*")),
          `RANGE nm` = as.numeric(str_extract(`RANGE nm`, "\\d*\\.*\\d*")),
@@ -209,7 +212,6 @@ df <- df %>%
          `CREW` = as.numeric(`CREW`),
          `CRUISING SPEED kn` = as.numeric(str_extract(`CRUISING SPEED kn`, pattern = "\\d*\\.*\\d*")),
          `BEAM m` = as.numeric(str_extract(`BEAM m`, pattern = "\\d*\\.*\\d*")),
-         `Length Overall in meters:` = as.numeric(str_extract(`BEAM m`, pattern = "\\d*\\.*\\d*")),
          `GUEST CABIN` = as.numeric(`GUEST CABIN`),
          `Length Overall in meters:` = as.numeric(str_extract(`Length Overall in meters:`, pattern = "\\d*\\.*\\d*")),
          `Beam in meters:` = as.numeric(str_extract(`Beam in meters:`, pattern = "\\d*\\.*\\d*")),
@@ -236,6 +238,39 @@ df <- df %>%
          )
   
 
-
 #OPTIONAL: save clean DF to RDS object
 #saveRDS(df, "yacht_DF.RDS")
+
+
+###########################################
+###########################################
+###               ANALYZE               ###
+###          YACHT INFORMATION          ###
+###########################################
+###########################################
+
+# Examine the relationship between yacht length and price
+df %>% 
+  ggplot(aes(x = `Length at Waterline in meters:`, y = (PRICE_EUR / 1000000))) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess") +
+  labs(x = "Yacht Length at Waterline in Meters", y = "Price, in Millions (EUR)", title = "Relationship Between Price (EUR) and Yacht Length") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Look at the model-year distribution of yachts for sale right now
+df %>% 
+  filter(`Year of Build:` %in% 1980:2020) %>% 
+  ggplot(aes(x = `Year of Build:`)) +
+  geom_histogram(stat = "count") +
+  labs(x = "Year Built", y = "Number of Yachts Listed", title = "Yachts for Sale, Manufactured 1980 - 2020") +
+  theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5))
+
+# Take a look at the range of yachts speeds for some of the big engine makers
+df %>% 
+  filter(`Engine Make:` %in% c("Caterpillar ", "MTU ", "Cummins ") ) %>% 
+  ggplot(aes(x = `Engine Make:`, y = `Max Speed in kn:`)) +
+  geom_boxplot() +
+  labs(x = "Engine Make", y = "Max Speed in Knots", title = "Max Speed by Engine Manufacturer") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
